@@ -1,49 +1,124 @@
-# from gmail_service import fetch_mails, send_response
-#
-# # Étape 1 : Récupérer les emails
-# emails = fetch_mails()
-#
-# # Étape 2 : Filtrer les emails pertinents
-# relevant_emails = [
-#     email for email in emails if "Demande de certificat de scolarite" in email.get("subject", "")
-# ]
-#
-# # Étape 3 : Répondre aux emails pertinents
-# for email in relevant_emails:
-#     thread_id = email["threadId"]
-#     sender_email = email["sender"]
-#     send_response(thread_id, sender_email)
-#
-# print(f"Réponses envoyées à {len(relevant_emails)} emails pertinents.")
+import os
 import time
 import schedule
-from gmail_service import fetch_mails, send_response, mark_as_read
+from gmail_service import (
+    fetch_mails,
+    remplir_template_docx,
+    send_response_with_attachment,
+    load_students_data,
+    extract_code_massar,
+    send_response,
+    mark_as_read,
+)
 
 def process_emails():
     """
-    Processus principal pour lire et répondre aux emails.
+    Processus principal pour traiter les emails entrants et répondre en fonction du contenu.
     """
-    # Étape 1 : Récupérer les emails non lus
-    emails = fetch_mails()
+    try:
+        emails = fetch_mails()  # Étape 1 : Récupérer les emails non lus
+        students = load_students_data()  # Charger les données des étudiants
+    except Exception as e:
+        print(f"Erreur lors du chargement des emails ou des données des étudiants : {e}")
+        return
 
-    # Étape 2 : Filtrer les emails pertinents
-    relevant_emails = [
-        email for email in emails if "Demande de certificat de scolarite" in email.get("subject", "")
-    ]
+    for email in emails:
+        try:
+            thread_id = email["threadId"]
+            sender_email = email["sender"]
+            snippet = email["snippet"]
 
-    # Étape 3 : Répondre aux emails pertinents
-    for email in relevant_emails:
-        thread_id = email["threadId"]
-        sender_email = email["sender"]
-        send_response(thread_id, sender_email)
+            # Extraire le code Massar
+            code_massar = extract_code_massar(snippet)
 
-        # Marquer l'email comme lu
-        mark_as_read(email["id"])
+            # if code_massar:
+            #     # Rechercher le code Massar dans les données des étudiants
+            #     student_data = next((s for s in students if s["code_massar"] == code_massar), None)
+            #
+            #     if student_data:
+            #         # Générer un certificat
+            #         output_file = remplir_template_docx(
+            #             code_massar=student_data["code_massar"],
+            #             ville=student_data["ville"],
+            #             nom_complet=student_data["nom"]
+            #         )
+            #
+            #         # Envoyer l'email avec le certificat
+            #         subject = "Votre certificat de scolarité"
+            #         body = f"Bonjour {student_data['nom']},\n\nVeuillez trouver ci-joint votre certificat de scolarité."
+            #         send_response_with_attachment(thread_id, sender_email, subject, body, output_file)
+            #     else:
+            #         # Répondre que le code Massar est inconnu
+            #         subject = "Code Massar inconnu"
+            #         body = (
+            #             f"Bonjour,\n\nNous avons trouvé un code Massar dans votre email ({code_massar}), "
+            #             "mais il n'est pas enregistré dans notre base de données."
+            #         )
+            #         send_response(thread_id, sender_email, subject, body)
+            # else:
+            #     # Répondre que le code Massar est manquant
+            #     subject = "Code Massar manquant"
+            #     body = (
+            #         "Bonjour,\n\nNous n'avons pas trouvé de code Massar dans votre email. "
+            #         "Veuillez nous envoyer un email avec un code Massar valide pour recevoir votre certificat."
+            #     )
+            #     send_response(thread_id, sender_email, subject, body)
+            if code_massar:
+                # Rechercher le code Massar dans les données des étudiants
+                student_data = next((s for s in students if s["code_massar"] == code_massar), None)
 
-    print(f"Réponses envoyées à {len(relevant_emails)} emails pertinents.")
+                if student_data:
+                    # Générer un certificat
+                    try:
+                        output_file = remplir_template_docx(
+                            code_massar=student_data["code_massar"],
+                            ville=student_data["ville"],
+                            nom_complet=student_data["nom"]
+                        )
+
+                        # Vérifier que le fichier a été généré
+                        if os.path.exists(output_file):
+                            # Envoyer l'email avec le certificat
+                            subject = "Votre certificat de scolarité"
+                            body = f"Bonjour {student_data['nom']},\n\nVeuillez trouver ci-joint votre certificat de scolarité."
+                            send_response_with_attachment(thread_id, sender_email, subject, body, output_file)
+                        else:
+                            raise FileNotFoundError(f"Le fichier {output_file} n'a pas été trouvé après génération.")
+                    except Exception as e:
+                        # En cas d'erreur, envoyer un email pour informer de l'échec
+                        subject = "Erreur de génération du certificat"
+                        body = (
+                            f"Bonjour {student_data['nom']},\n\nUne erreur est survenue lors de la génération de votre certificat "
+                            f"de scolarité. Veuillez réessayer plus tard.\n\nErreur : {e}"
+                        )
+                        send_response(thread_id, sender_email, subject, body)
+                else:
+                    # Répondre que le code Massar est inconnu
+                    subject = "Code Massar inconnu"
+                    body = (
+                        f"Bonjour,\n\nNous avons trouvé un code Massar dans votre email ({code_massar}), "
+                        "mais il n'est pas enregistré dans notre base de données."
+                    )
+                    send_response(thread_id, sender_email, subject, body)
+            else:
+                # Répondre que le code Massar est manquant
+                subject = "Code Massar manquant"
+                body = (
+                    "Bonjour,\n\nNous n'avons pas trouvé de code Massar dans votre email. "
+                    "Veuillez nous envoyer un email avec un code Massar valide pour recevoir votre certificat."
+                )
+                send_response(thread_id, sender_email, subject, body)
+
+            # Marquer l'email comme lu
+            mark_as_read(email["id"])
+
+        except Exception as e:
+            print(f"Erreur lors du traitement de l'email : {e}")
+
+    print("Traitement des emails terminé.")
 
 # Planifier le processus toutes les 2 minutes
-schedule.every(2).minutes.do(process_emails)
+schedule.every(1).minutes.do(process_emails)
 
 # Boucle continue pour exécuter les tâches planifiées
 print("Agent en cours d'exécution...")

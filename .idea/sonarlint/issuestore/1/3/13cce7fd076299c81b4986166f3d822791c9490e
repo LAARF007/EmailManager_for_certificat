@@ -1,0 +1,6 @@
+
+™python:S3776"TRefactor this function to reduce its Cognitive Complexity from 20 to the 15 allowed.(í”†Ó8Æ‘Œ–º2J$0307ae08-5955-472a-b21b-a8fb3129b502
+hpython:S125""Remove this commented out code.(ü¿üÕÿÿÿÿÿ8Ãá‹–º2J$9dd9b12e-5d24-4a6f-ad80-4a7e5c060955
+’python:S930^"NRemove 2 unexpected arguments; 'send_response' expects 2 positional arguments.(¤’Û8Ì‘Œ–º2J$62403b41-8ccf-4811-901b-5ef6d2b6684c
+’python:S930f"NRemove 2 unexpected arguments; 'send_response' expects 2 positional arguments.(¤’Û8Ï‘Œ–º2J$3dc63d12-8e68-4a52-a3e3-87f68964ba14
+’python:S930n"NRemove 2 unexpected arguments; 'send_response' expects 2 positional arguments.(¤’Û8Ñ‘Œ–º2J$65baafdf-0586-42f9-b062-2355eb639739
