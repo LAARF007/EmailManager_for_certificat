@@ -28,3 +28,15 @@ G.venv/Lib/site-packages/langchain_community/tools/gmail/send_message.py,7\8\78
 M.venv/Lib/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py,e\d\ed5d66c9140e8288704d609bfa08bd3bc13a9e1b
 W
 '.venv/Lib/site-packages/crewai/agent.py,4\d\4d00f6294dfaba9acbe3cb56158bb4edea6b5dc4
+9
+	data.json,7\4\742e03b5d9ae5b166ca116078a7bf85c41940472
+>
+etudiants.json,f\c\fc4608f03849fb42d72e1ddd5ae56c12fc219d0a
+Å
+Q.idea/sonarlint/securityhotspotstore/7/4/742e03b5d9ae5b166ca116078a7bf85c41940472,b\5\b55fba7ff63b5d7190c88e3a573fe1f1e8dda958
+w
+G.idea/sonarlint/issuestore/f/c/fc4608f03849fb42d72e1ddd5ae56c12fc219d0a,6\a\6a733aeb1d008c9a5ea4436de7bfdcd92d49788e
+w
+G.idea/sonarlint/issuestore/7/4/742e03b5d9ae5b166ca116078a7bf85c41940472,8\4\84a801eb9f62cc329496ad14a54f960ce70ada7e
+Å
+Q.idea/sonarlint/securityhotspotstore/f/c/fc4608f03849fb42d72e1ddd5ae56c12fc219d0a,d\d\dd164fbf642291f4bc470f749ba5182dcce563b5
