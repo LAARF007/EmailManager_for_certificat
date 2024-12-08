@@ -98,3 +98,8 @@ w
 G.idea/sonarlint/issuestore/8/2/82ff1893ff393d61dc00e5c9877a383ebc14de20,e\2\e20e35313982861dc7d2b75c807433e501568e57
 w
 G.idea/sonarlint/issuestore/2/0/20908eb5097c9766b6fd046c23e4f088cc646948,e\4\e4a696046eb8b4f57f91ae767446ef23c9384bd4
+\
+,.venv/Lib/site-packages/schedule/__init__.py,8\4\84986b4a6dddd82fceae7100b6d1a7e6f4a10100
+:
+
+.gitignore,a\5\a5cc2925ca8258af241be7e5b0381edf30266302
