@@ -40,7 +40,6 @@ def fetch_mails():
         def extract_email(sender):
             match = re.search(r"<(.+?)>", sender)
             return match.group(1) if match else sender
-
         return [
             {
                 "id": email["id"],
@@ -155,7 +154,7 @@ def send_response_with_attachment(thread_id, to_email, subject, body, attachment
         print(f"Email envoyé avec succès : {sent_message['id']}")
     except Exception as e:
         print(f"Erreur lors de l'envoi de l'email avec pièce jointe : {e}")
-def send_response(thread_id, to_email):
+def send_response(thread_id, to_email, subject, body):
     """
     Envoie une réponse automatique à l'adresse fournie.
 
@@ -164,8 +163,8 @@ def send_response(thread_id, to_email):
         to_email (str): L'adresse email de l'expéditeur (demandeur).
     """
     # Sujet et contenu du message
-    subject = "Réponse à votre demande de certificat de scolarité"
-    body = "Votre demande a bien été reçue. Nous reviendrons vers vous bientôt."
+    # subject = "Réponse à votre demande de certificat de scolarité"
+    # body = "Votre demande a bien été reçue. Nous reviendrons vers vous bientôt."
 
     # Initialiser l'outil d'envoi d'email
     send_tool = GmailSendMessage(api_resource=api_resource)
@@ -202,7 +201,7 @@ def mark_as_read(email_id):
         print(f"Erreur lors du marquage comme lu : {e}")
 
 
-def remplir_template_docx(code_massar, ville, nom_complet, output_folder="output", template_path="template.docx"):
+def remplir_template_docx(code_massar, ville, nom_complet, cycle_d_etudes, filiere, output_folder="output", template_path="template.docx"):
     """
     Remplit un modèle Word avec les informations fournies et génère un fichier.
 
@@ -229,6 +228,8 @@ def remplir_template_docx(code_massar, ville, nom_complet, output_folder="output
         "{{VILLE}}": ville,
         "{{NOM_COMPLET}}": nom_complet,
         "{{DATE}}": datetime.now().strftime("%d/%m/%Y"),
+        "{{CYCLE_D_ETUDES}}": cycle_d_etudes,
+        "{{FILIERE}}": filiere
     }
 
     for paragraph in doc.paragraphs:
@@ -240,3 +241,4 @@ def remplir_template_docx(code_massar, ville, nom_complet, output_folder="output
     doc.save(output_path)
     print(f"Certificat généré : {output_path}")
     return output_path
+

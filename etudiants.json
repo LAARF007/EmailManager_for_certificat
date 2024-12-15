@@ -2,6 +2,15 @@
     {
         "code_massar": "A1234567",
         "nom": "adel laarf",
-        "ville": "glm"
+        "ville": "Guelmim",
+        "filiere": "IAII",
+        "cycle_d_etudes": "Master"
+    },
+    {
+        "code_massar": "J88888",
+        "nom": "ahmed elgharbi",
+        "ville": "Safi",
+        "filiere": "Finance",
+        "cycle_d_etudes": "Master"
     }
 ]
