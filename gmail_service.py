@@ -17,6 +17,23 @@ from langchain_community.tools.gmail.send_message import GmailSendMessage
 import mimetypes
 from email.mime.base import MIMEBase
 from email import encoders
+import google.generativeai as genai
+
+genai.configure(api_key="AIzaSyDmzAsdfGpae-O5S_2XEwG6cHjuIpW_jRQ")
+
+# Create the model
+generation_config = {
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 40,
+  "max_output_tokens": 8192,
+  "response_mime_type": "text/plain",
+}
+
+model = genai.GenerativeModel(
+  model_name="gemini-2.0-flash-exp",
+  generation_config=generation_config,
+)
 
 # Initialiser les services Gmail API
 credentials = get_gmail_credentials(
@@ -55,22 +72,51 @@ def fetch_mails():
         print(f"Erreur lors de la récupération des emails : {e}")
         return []
 
-def extract_code_massar(snippet):
+# def extract_code_massar(snippet):
+#     """
+#     Extrait le code Massar du corps ou snippet de l'email.
+#
+#     Args:
+#         snippet (str): Le contenu de l'email.
+#
+#     Returns:
+#         str: Le code Massar s'il est trouvé, sinon None.
+#     """
+#     try:
+#         match = re.search(r"code massar\s*:\s*([A-Za-z]\d+)", snippet, re.IGNORECASE)
+#         return match.group(1) if match else None
+#     except Exception as e:
+#         print(f"Erreur lors de l'extraction du code Massar : {e}")
+#         return None
+def extract_code_massar_with_gemini(snippet):
     """
-    Extrait le code Massar du corps ou snippet de l'email.
+    Utilise Gemini pour extraire le code Massar du contenu de l'email.
 
     Args:
         snippet (str): Le contenu de l'email.
 
     Returns:
-        str: Le code Massar s'il est trouvé, sinon None.
+        str: Le code Massar s'il est extrait avec succès, sinon None.
     """
+    prompt = (
+        f"Extrait uniquement le code Massar du texte suivant : '{snippet}'. "
+        "Le code Massar est une chaîne qui commence par une lettre suivie de chiffres, comme 'M123456'. "
+        "Si aucun code n'est trouvé, réponds 'None'."
+    )
+
     try:
-        match = re.search(r"code massar\s*:\s*([A-Za-z]\d+)", snippet, re.IGNORECASE)
-        return match.group(1) if match else None
+        response = model.generate_content(prompt)
+        extracted_code = response.text.strip()
+
+        # Vérification si la réponse correspond bien au format attendu
+        if re.match(r"^[A-Za-z]\d+$", extracted_code):
+            return extracted_code
+        else:
+            return None
     except Exception as e:
-        print(f"Erreur lors de l'extraction du code Massar : {e}")
+        print(f"Erreur avec Gemini pour extraire le code Massar : {e}")
         return None
+
 
 def load_students_data():
     """
@@ -155,7 +201,7 @@ def send_response_with_attachment(thread_id, to_email, subject, body, attachment
         print(f"Email envoyé avec succès : {sent_message['id']}")
     except Exception as e:
         print(f"Erreur lors de l'envoi de l'email avec pièce jointe : {e}")
-def send_response(thread_id, to_email):
+def send_response(thread_id, to_email , subject, body):
     """
     Envoie une réponse automatique à l'adresse fournie.
 
@@ -164,8 +210,8 @@ def send_response(thread_id, to_email):
         to_email (str): L'adresse email de l'expéditeur (demandeur).
     """
     # Sujet et contenu du message
-    subject = "Réponse à votre demande de certificat de scolarité"
-    body = "Votre demande a bien été reçue. Nous reviendrons vers vous bientôt."
+    # subject = "Réponse à votre demande de certificat de scolarité"
+    # body = "Votre demande a bien été reçue. Nous reviendrons vers vous bientôt."
 
     # Initialiser l'outil d'envoi d'email
     send_tool = GmailSendMessage(api_resource=api_resource)
@@ -202,7 +248,7 @@ def mark_as_read(email_id):
         print(f"Erreur lors du marquage comme lu : {e}")
 
 
-def remplir_template_docx(code_massar, ville, nom_complet, output_folder="output", template_path="template.docx"):
+def remplir_template_docx(code_massar, ville, nom_complet, cycle_d_etudes, filiere, output_folder="output", template_path="template.docx"):
     """
     Remplit un modèle Word avec les informations fournies et génère un fichier.
 
@@ -229,6 +275,8 @@ def remplir_template_docx(code_massar, ville, nom_complet, output_folder="output
         "{{VILLE}}": ville,
         "{{NOM_COMPLET}}": nom_complet,
         "{{DATE}}": datetime.now().strftime("%d/%m/%Y"),
+        "{{CYCLE_D_ETUDES}}":cycle_d_etudes,
+        "{{FILIERE}}": filiere
     }
 
     for paragraph in doc.paragraphs:
@@ -240,3 +288,40 @@ def remplir_template_docx(code_massar, ville, nom_complet, output_folder="output
     doc.save(output_path)
     print(f"Certificat généré : {output_path}")
     return output_path
+
+def is_request_for_certificate(subject):
+    """
+    Utilise Gemini pour vérifier si l'objet correspond à une demande de certificat de scolarité.
+
+    Args:
+        subject (str): L'objet de l'email.
+
+    Returns:
+        bool: True si l'objet est valide, False sinon.
+    """
+    try:
+        prompt = f"L'objet suivant est-il une demande de certificat de scolarité ? Répondre par 'Oui' ou 'Non' uniquement : {subject}"
+        response = model.generate_content(prompt)
+        return "oui" in response.text.lower()
+    except Exception as e:
+        print(f"Erreur lors de la vérification de l'objet avec Gemini : {e}")
+        return False
+
+def is_request_for_certificat(subject):
+    """
+    Utilise Gemini pour déterminer si l'email est une demande de certificat de scolarité.
+
+    Args:
+        subject (str): Le sujet de l'email.
+
+    Returns:
+        bool: True si c'est une demande, sinon False.
+    """
+    prompt = f"Est-ce que ce sujet d'email '{subject}' indique une demande de certificat de scolarité ? Réponds uniquement par 'oui' ou 'non'."
+    try:
+        response = model.generate_content(prompt)
+        result = response.text.strip().lower()
+        return result == "oui"
+    except Exception as e:
+        print(f"Erreur avec Gemini : {e}")
+        return False

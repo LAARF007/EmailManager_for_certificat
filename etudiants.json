@@ -2,6 +2,17 @@
     {
         "code_massar": "A1234567",
         "nom": "adel laarf",
-        "ville": "glm"
+        "ville": "glm",
+        "cycle_d_etudes": "Master",
+        "filiere": "IAII"
+
+    },
+    {
+        "code_massar": "B1234567",
+        "nom": "ahmed elghb",
+        "ville": "sebt",
+        "cycle_d_etudes": "licence",
+        "filiere": "FIN"
+
     }
 ]

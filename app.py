@@ -6,9 +6,10 @@ from gmail_service import (
     remplir_template_docx,
     send_response_with_attachment,
     load_students_data,
-    extract_code_massar,
+    extract_code_massar_with_gemini,
     send_response,
     mark_as_read,
+    is_request_for_certificat,
 )
 
 def process_emails():
@@ -27,42 +28,15 @@ def process_emails():
             thread_id = email["threadId"]
             sender_email = email["sender"]
             snippet = email["snippet"]
+            subject = email.get("subject", "")
+
+            # Vérification si le sujet correspond à une demande de certificat
+            if not is_request_for_certificat(subject):
+                print(f"Email ignoré (sujet non valide) : {subject}")
+                continue
 
             # Extraire le code Massar
-            code_massar = extract_code_massar(snippet)
-
-            # if code_massar:
-            #     # Rechercher le code Massar dans les données des étudiants
-            #     student_data = next((s for s in students if s["code_massar"] == code_massar), None)
-            #
-            #     if student_data:
-            #         # Générer un certificat
-            #         output_file = remplir_template_docx(
-            #             code_massar=student_data["code_massar"],
-            #             ville=student_data["ville"],
-            #             nom_complet=student_data["nom"]
-            #         )
-            #
-            #         # Envoyer l'email avec le certificat
-            #         subject = "Votre certificat de scolarité"
-            #         body = f"Bonjour {student_data['nom']},\n\nVeuillez trouver ci-joint votre certificat de scolarité."
-            #         send_response_with_attachment(thread_id, sender_email, subject, body, output_file)
-            #     else:
-            #         # Répondre que le code Massar est inconnu
-            #         subject = "Code Massar inconnu"
-            #         body = (
-            #             f"Bonjour,\n\nNous avons trouvé un code Massar dans votre email ({code_massar}), "
-            #             "mais il n'est pas enregistré dans notre base de données."
-            #         )
-            #         send_response(thread_id, sender_email, subject, body)
-            # else:
-            #     # Répondre que le code Massar est manquant
-            #     subject = "Code Massar manquant"
-            #     body = (
-            #         "Bonjour,\n\nNous n'avons pas trouvé de code Massar dans votre email. "
-            #         "Veuillez nous envoyer un email avec un code Massar valide pour recevoir votre certificat."
-            #     )
-            #     send_response(thread_id, sender_email, subject, body)
+            code_massar = extract_code_massar_with_gemini(snippet)
             if code_massar:
                 # Rechercher le code Massar dans les données des étudiants
                 student_data = next((s for s in students if s["code_massar"] == code_massar), None)
@@ -73,9 +47,10 @@ def process_emails():
                         output_file = remplir_template_docx(
                             code_massar=student_data["code_massar"],
                             ville=student_data["ville"],
-                            nom_complet=student_data["nom"]
+                            nom_complet=student_data["nom"],
+                            cycle_d_etudes=student_data["cycle_d_etudes"],
+                            filiere=student_data["filiere"]
                         )
-
                         # Vérifier que le fichier a été généré
                         if os.path.exists(output_file):
                             # Envoyer l'email avec le certificat
