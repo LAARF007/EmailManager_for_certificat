@@ -63,7 +63,7 @@ def process_emails():
                         # En cas d'erreur, envoyer un email pour informer de l'échec
                         subject = "Erreur de génération du certificat"
                         body = (
-                            f"Bonjour {student_data['nom']},\n\nUne erreur est survenue lors de la génération de votre certificat "
+                            f"Bonjour {student_data['nom']},\n\nUne erreur est survenue lors de l envoi de votre certificat "
                             f"de scolarité. Veuillez réessayer plus tard.\n\nErreur : {e}"
                         )
                         send_response(thread_id, sender_email, subject, body)

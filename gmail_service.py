@@ -72,22 +72,6 @@ def fetch_mails():
         print(f"Erreur lors de la récupération des emails : {e}")
         return []
 
-# def extract_code_massar(snippet):
-#     """
-#     Extrait le code Massar du corps ou snippet de l'email.
-#
-#     Args:
-#         snippet (str): Le contenu de l'email.
-#
-#     Returns:
-#         str: Le code Massar s'il est trouvé, sinon None.
-#     """
-#     try:
-#         match = re.search(r"code massar\s*:\s*([A-Za-z]\d+)", snippet, re.IGNORECASE)
-#         return match.group(1) if match else None
-#     except Exception as e:
-#         print(f"Erreur lors de l'extraction du code Massar : {e}")
-#         return None
 def extract_code_massar_with_gemini(snippet):
     """
     Utilise Gemini pour extraire le code Massar du contenu de l'email.
@@ -317,7 +301,7 @@ def is_request_for_certificat(subject):
     Returns:
         bool: True si c'est une demande, sinon False.
     """
-    prompt = f"Est-ce que ce sujet d'email '{subject}' indique une demande de certificat de scolarité ? Réponds uniquement par 'oui' ou 'non'."
+    prompt = f"Est-ce que ce sujet d'email '{subject}' indique une demande de certificat de scolarité ou attestation ? Réponds uniquement par 'oui' ou 'non'."
     try:
         response = model.generate_content(prompt)
         result = response.text.strip().lower()
